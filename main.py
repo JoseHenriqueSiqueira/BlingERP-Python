@@ -38,7 +38,7 @@ def getproducts(apikey):
         except:
             fim=1
             page-page-1
-    for sku,estoque in zip(codigos,estoques):#Loop percorrendo os valores em 'codigos' e 'estoques'
+    for sku,estoque in zip(codigos,estoques):#Loop percorrendo os valores em 'Codigos' e 'Estoques'
         print(f'SKU:{sku}')#Imprimindo SKU
         print(f'ESTOQUES:{estoque}\n')#Imprimindo Estoque
     print(f'Total Paginas:{page}\n')
