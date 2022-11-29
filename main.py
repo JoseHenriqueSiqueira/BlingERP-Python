@@ -50,4 +50,3 @@ if __name__ == "__main__":
     print("OBTENDO TOTAL DE VENDAS...\n")
     getproducts(APIKEY)
     input("\nPRESSIONE ALGUMA TECLA PARA FINALIZAR")
-    
