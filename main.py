@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QProgressBar
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.uic import loadUi
 from threading import Thread
@@ -12,11 +12,13 @@ class MainWindow(QMainWindow):
         self.signal.connect(self.signalResponse)
         self.btnpedidos.clicked.connect(self.btnPedidos)
         self.btnprodutos.clicked.connect(self.btnProdutos)
+        self.pbar = QProgressBar(self)
+        self.pbar.setGeometry(480, 10, 25, 100)
+        self.pbar.setOrientation(Qt.Vertical)
     
     def btnPedidos(self,event):
         if self.getapikey.text():
             self.signal.emit(["GetPedidosStart"])
-            Thread(target=self.getpedidos).start()
         else:
             QMessageBox.warning(self,"ATENÇÃO","O Campo 'APIKEY' não pode ficar em branco")
 
@@ -41,11 +43,12 @@ class MainWindow(QMainWindow):
                     for pedidos in data:
                         totalpddos=np.append(totalpddos,int(pedidos['pedido']['numero'])) #Obtendo o número de cada pedido
                     page=page+1
+                    self.signal.emit(['ProgressBar',page])
             except:
                 fim=1
                 page=page-1
         totalpddos=np.unique(totalpddos)
-        self.signal.emit(["GetPedidosEnd",len(totalpddos)])
+        self.signal.emit(["GetPedidosEnd",len(totalpddos),page])
 
     def btnProdutos(self,event):
         if self.getapikey.text():
@@ -82,6 +85,7 @@ class MainWindow(QMainWindow):
 
     def signalResponse(self,response):
         if response[0]=='GetPedidosStart':
+            Thread(target=self.getpedidos).start()
             self.statusbar.showMessage("Obtendo informações dos pedidos...")
             self.btnpedidos.disconnect()
 
@@ -92,9 +96,11 @@ class MainWindow(QMainWindow):
             self.btnprodutos.clicked.connect(self.btnProdutos)
 
         if response[0]=='GetPedidosEnd':
+            self.pbar.setMaximum(response[2]+1)
             self.statusbar.showMessage("Informações dos pedidos retornadas")
             self.btnpedidos.clicked.connect(self.btnPedidos)
             QMessageBox.information(self,"SUCESSO",f"Total de pedidos: {response[1]}")
+            self.pbar.setValue(0)
 
         if response[0]=='GetProdutosStart':
             self.statusbar.showMessage("Obtendo informações dos Produtos...")
@@ -126,6 +132,11 @@ class MainWindow(QMainWindow):
             self.tableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
             self.tableWidget.show()
             self.btnprodutos.clicked.connect(self.btnProdutos)
+        
+        if response[0]=="ProgressBar":
+            self.pbar.setMaximum(response[1]+1)
+            self.pbar.setValue(response[1])
+
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
