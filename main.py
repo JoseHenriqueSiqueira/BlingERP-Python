@@ -21,7 +21,6 @@ class MainWindow(QMainWindow):
             self.signal.emit(["GetPedidosStart"])
         else:
             QMessageBox.warning(self,"ATENÇÃO","O Campo 'APIKEY' não pode ficar em branco")
-
     #Obter Informações sobre os pedidos
     def getpedidos(self):
         APIKEY=self.getapikey.text()
@@ -56,7 +55,6 @@ class MainWindow(QMainWindow):
             Thread(target=self.getproducts).start()
         else:
             QMessageBox.warning(self,"ATENÇÃO","O Campo 'APIKEY' não pode ficar em branco")
-
     #Obter Informações sobre os produtos
     def getproducts(self):
         APIKEY=self.getapikey.text()
