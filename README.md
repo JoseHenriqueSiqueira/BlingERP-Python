@@ -3,13 +3,11 @@
  <pre>
  Nesse projeto estou criando software que faz requisições ao Bling ERP.
  </pre>
-
  ATUALIZAÇÃO 10/12/22
 <pre>
  -Função getpedidos também retorna o valor de cada venda.
  -Adicionado uma tabela para os pedidos.
 </pre>
-
  ATUALIZAÇÃO 09/12/22
  <pre>
  -Adicionado 'setup.py'
