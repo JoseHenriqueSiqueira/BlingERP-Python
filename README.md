@@ -1,6 +1,8 @@
 # BlingERP-Python
  Primeiro Repositório
+ <pre>
  Nesse projeto estou criando software que faz requisições ao Bling ERP.
+ </pre>
  
  ATUALIZAÇÃO 09/12/22
  <pre>
