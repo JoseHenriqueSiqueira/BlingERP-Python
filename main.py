@@ -26,6 +26,7 @@ class MainWindow(QMainWindow):
         APIKEY=self.getapikey.text()
         FILTERS="FILTROS" #Filtros para restringir o retorno de dados (Tipos de filtros na documentação da API do BLING)
         totalpddos=np.array([],int)
+        valorvenda=np.array([],float)
         fim=0
         page=1
         while fim==0: #Esse loop é necessário, pois a API do BLING retorna 100 linhas por REQUEST. Esse loop funcionara até retornar todos os pedidos em todas as paginas.
@@ -41,13 +42,14 @@ class MainWindow(QMainWindow):
                     data=request.json()['retorno']['pedidos']
                     for pedidos in data:
                         totalpddos=np.append(totalpddos,int(pedidos['pedido']['numero'])) #Obtendo o número de cada pedido
+                        valorvenda=np.append(valorvenda,float(pedidos['pedido']['totalvenda']))
                     page=page+1
                     self.signal.emit(['ProgressBar',page])
             except:
                 fim=1
                 page=page-1
         totalpddos=np.unique(totalpddos)
-        self.signal.emit(["GetPedidosEnd",len(totalpddos),page])
+        self.signal.emit(["GetPedidosEnd",len(totalpddos),page,valorvenda,totalpddos])
 
     def btnProdutos(self,event):
         if self.getapikey.text():
@@ -97,8 +99,32 @@ class MainWindow(QMainWindow):
             self.pbar.setMaximum(response[2]+1)
             self.statusbar.showMessage("Informações dos pedidos retornadas")
             self.btnpedidos.clicked.connect(self.btnPedidos)
-            QMessageBox.information(self,"SUCESSO",f"Total de pedidos: {response[1]}")
             self.pbar.setValue(0)
+            QMessageBox.information(self,"SUCESSO",f"Total de Vendas {response[1]}")
+            self.tableWidget = QTableWidget()
+            self.tableWidget.setRowCount(response[1]+1)
+            self.tableWidget.setColumnCount(2)
+            Numero=QTableWidgetItem("NÚMERO")
+            Numero.setTextAlignment(Qt.AlignCenter)
+            ValorVenda=QTableWidgetItem("VALOR VENDA")
+            ValorVenda.setTextAlignment(Qt.AlignCenter)
+            self.tableWidget.setItem(0,0, Numero)
+            self.tableWidget.setItem(0,1, ValorVenda)
+            cont=1
+            for value in response[4]:
+                value=QTableWidgetItem(str(value))
+                value.setTextAlignment(Qt.AlignCenter)
+                self.tableWidget.setItem(cont,0, value)
+                cont=cont+1
+            cont=1
+            for value in response[3]:
+                value=QTableWidgetItem("R$ "+str(value))
+                value.setTextAlignment(Qt.AlignCenter)
+                self.tableWidget.setItem(cont,1, value)
+                cont=cont+1
+            cont=1
+            self.tableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+            self.tableWidget.show()
 
         if response[0]=='GetProdutosStart':
             self.statusbar.showMessage("Obtendo informações dos Produtos...")
@@ -108,7 +134,7 @@ class MainWindow(QMainWindow):
             self.statusbar.showMessage("Informações dos produtos retornadas")
             self.tableWidget = QTableWidget()
             self.tableWidget.setRowCount(len(response[1])+1)
-            self.tableWidget.setColumnCount(len(response)-1)
+            self.tableWidget.setColumnCount(2)
             Produto=QTableWidgetItem("PRODUTO")
             Produto.setTextAlignment(Qt.AlignCenter)
             Estoque=QTableWidgetItem("ESTOQUE")
