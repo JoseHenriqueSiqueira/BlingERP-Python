@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
                     data=request.json()['retorno']['pedidos']
                     for pedidos in data:
                         totalpddos=np.append(totalpddos,int(pedidos['pedido']['numero'])) #Obtendo o número de cada pedido
-                        valorvenda=np.append(valorvenda,float(pedidos['pedido']['totalvenda']))
+                        valorvenda=np.append(valorvenda,float(pedidos['pedido']['totalvenda'])) #Obtendo o valor de cada pedido
                     page=page+1
                     self.signal.emit(['ProgressBar',page])
             except:
