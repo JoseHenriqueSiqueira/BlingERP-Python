@@ -1,7 +1,7 @@
 # BlingERP-Python
  Primeiro Repositório
  <pre>
- Nesse projeto estou criando software que faz requisições ao Bling ERP.
+ Nesse projeto estou criando software que faz requisições ao Bling ERP. Desenvolvimento no Windows 10.
  </pre>
  ATUALIZAÇÃO 10/12/22
 <pre>

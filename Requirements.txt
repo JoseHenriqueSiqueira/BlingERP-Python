@@ -1,0 +1,9 @@
+Application depends on the following modules
+
+-PyQt5
+-threading
+-requests
+-sys
+-numpy
+
+Python Version 3.9
