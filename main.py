@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidget
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.uic import loadUi
 from threading import Thread
-import requests, numpy as np, sys
+import requests, numpy as np, sys, datetime
 
 class MainWindow(QMainWindow):
     signal=pyqtSignal(list)
@@ -25,13 +25,15 @@ class MainWindow(QMainWindow):
     def getpedidos(self):
         APIKEY=self.getapikey.text()
         FILTERS="FILTROS" #Filtros para restringir o retorno de dados (Tipos de filtros na documentação da API do BLING)
-        totalpddos=np.array([],int)
-        valorvenda=np.array([],float)
+        totalpddos=np.array([])
+        valorvenda=np.array([])
+        datavenda=np.array([])
+        situaçao=np.array([])
         fim=0
         page=1
         while fim==0: #Esse loop é necessário, pois a API do BLING retorna 100 linhas por REQUEST. Esse loop funcionara até retornar todos os pedidos em todas as paginas.
             try:
-                #Caso nao queria adicionar filtros, substitua a URL para "f'https://bling.com.br/Api/v2/pedidos/page={page}/json/?apikey={apikey}'" 
+                #Caso nao queria adicionar filtros, substitua a URL para "f'https://bling.com.br/Api/v2/pedidos/page={page}/json/?apikey={APIKEY}'" 
                 request=requests.get(f'https://bling.com.br/Api/v2/pedidos/page={page}/json/?apikey={APIKEY}')
                 try:
                     request.json()['retorno']['erros']['erro']['msg']
@@ -41,15 +43,18 @@ class MainWindow(QMainWindow):
                 except:
                     data=request.json()['retorno']['pedidos']
                     for pedidos in data:
-                        totalpddos=np.append(totalpddos,int(pedidos['pedido']['numero'])) #Obtendo o número de cada pedido
+                        totalpddos=np.append(totalpddos,str(pedidos['pedido']['numero'])) #Obtendo o número de cada pedido
                         valorvenda=np.append(valorvenda,float(pedidos['pedido']['totalvenda'])) #Obtendo o valor de cada pedido
+                        datavenda=np.append(datavenda,str(pedidos['pedido']['data'])) #Obtendo a data de cada pedido
+                        situaçao=np.append(situaçao,str(pedidos['pedido']['situacao'])) #Obtendo a situação de cada pedido
                     page=page+1
                     self.signal.emit(['ProgressBar',page])
             except:
                 fim=1
                 page=page-1
         totalpddos=np.unique(totalpddos)
-        self.signal.emit(["GetPedidosEnd",len(totalpddos),page,valorvenda,totalpddos])
+        result = np.stack((totalpddos,valorvenda,datavenda,situaçao), axis = 1)
+        self.signal.emit(["GetPedidosEnd",len(totalpddos),page,result])
 
     def btnProdutos(self,event):
         if self.getapikey.text():
@@ -103,26 +108,34 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self,"SUCESSO",f"Total de Vendas {response[1]}")
             self.tableWidget = QTableWidget()
             self.tableWidget.setRowCount(response[1]+1)
-            self.tableWidget.setColumnCount(2)
+            self.tableWidget.setColumnCount(4)
             Numero=QTableWidgetItem("NÚMERO")
             Numero.setTextAlignment(Qt.AlignCenter)
             ValorVenda=QTableWidgetItem("VALOR VENDA")
             ValorVenda.setTextAlignment(Qt.AlignCenter)
+            Data=QTableWidgetItem("DATA")
+            Data.setTextAlignment(Qt.AlignCenter)
+            Situaçao=QTableWidgetItem("SITUAÇÃO")
+            Situaçao.setTextAlignment(Qt.AlignCenter)
             self.tableWidget.setItem(0,0, Numero)
             self.tableWidget.setItem(0,1, ValorVenda)
-            cont=1
-            for value in response[4]:
-                value=QTableWidgetItem(str(value))
-                value.setTextAlignment(Qt.AlignCenter)
-                self.tableWidget.setItem(cont,0, value)
-                cont=cont+1
+            self.tableWidget.setItem(0,2, Data)
+            self.tableWidget.setItem(0,3, Situaçao)
             cont=1
             for value in response[3]:
-                value=QTableWidgetItem("R$ "+str(value))
-                value.setTextAlignment(Qt.AlignCenter)
-                self.tableWidget.setItem(cont,1, value)
+                value0=QTableWidgetItem(str(value[0]))
+                value1=QTableWidgetItem(str("R$ "+value[1]))
+                value2=QTableWidgetItem(str(datetime.datetime.strptime(value[2], '%Y-%m-%d').strftime('%m/%d/%Y')))
+                value3=QTableWidgetItem(str(value[3]))
+                value0.setTextAlignment(Qt.AlignCenter)
+                value1.setTextAlignment(Qt.AlignCenter)
+                value2.setTextAlignment(Qt.AlignCenter)
+                value3.setTextAlignment(Qt.AlignCenter)
+                self.tableWidget.setItem(cont,0, value0)
+                self.tableWidget.setItem(cont,1, value1)
+                self.tableWidget.setItem(cont,2, value2)
+                self.tableWidget.setItem(cont,3, value3)
                 cont=cont+1
-            cont=1
             self.tableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
             self.tableWidget.show()
 
